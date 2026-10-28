@@ -53,6 +53,7 @@ function buildTerrain(): THREE.BufferGeometry {
       col.copy(C.grassA).lerp(C.grassB, smoothstep(0.3, 0.7, n1));
       col.lerp(C.forest, smoothstep(6, 26, h) * 0.8);
       col.lerp(C.sand, sandT);
+      col.lerp(C.wet, (1 - smoothstep(0.02, 0.3, h)) * 0.5);
       col.lerp(C.rock, smoothstep(0.5, 0.95, slope));
     }
     col.multiplyScalar(0.92 + n2 * 0.16);

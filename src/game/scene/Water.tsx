@@ -25,6 +25,7 @@ void main() {
 const fragmentShader = /* glsl */ `
 uniform float uTime;
 uniform float uSize;
+uniform float uDay;
 uniform vec3 uSunDir;
 uniform vec3 uShallow;
 uniform vec3 uDeep;
@@ -69,8 +70,15 @@ void main() {
   col += uShallow * scatter;
   col += vec3(1.0, 0.88, 0.68) * (glint + glow);
 
+  float c1 = sin(p.x * 3.1 + sin(p.y * 2.7 + uTime * 0.9) * 1.6 + uTime * 0.7);
+  float c2 = sin(p.y * 3.3 + sin(p.x * 2.9 - uTime * 0.8) * 1.6 - uTime * 0.5);
+  float caus = pow(1.0 - abs(c1 * c2), 7.0);
+  col += vec3(0.85, 1.0, 0.9) * caus * 0.24 * uDay * smoothstep(0.05, 0.35, dep) * (1.0 - smoothstep(0.4, 2.4, dep)) * (1.0 - smoothstep(14.0, 48.0, dist));
+
   float edge = 1.0 - smoothstep(0.02, 0.3, dep);
   float foam = edge * (0.5 + 0.5 * sin(p.x * 3.1 + uTime) * sin(p.y * 2.7 - uTime * 0.8));
+  float rings = smoothstep(0.6, 1.0, sin(dep * 34.0 - uTime * 1.4 + sin(p.x * 0.8) * 1.5)) * (1.0 - smoothstep(0.06, 0.6, dep)) * smoothstep(0.0, 0.08, dep);
+  foam = max(foam, rings * 0.7);
   col = mix(col, vec3(0.93, 0.95, 0.92), foam * 0.55);
 
   float alpha = mix(0.32, 0.97, smoothstep(0.0, 1.7, dep));
@@ -101,6 +109,7 @@ export function Water() {
         {
           uTime: { value: 0 },
           uSize: { value: TERRAIN_SIZE },
+          uDay: { value: 1 },
           uSunDir: { value: SUN_DIR.clone() },
           uShallow: { value: new THREE.Color('#5aa79b') },
           uDeep: { value: new THREE.Color('#123f58') },
@@ -120,6 +129,7 @@ export function Water() {
     const u = m.uniforms;
     u.uTime.value = state.clock.elapsedTime;
     u.uSunDir.value.copy(env.sunDir);
+    u.uDay.value = env.daylight * (1 - 0.7 * env.cloud);
     u.uSky.value.copy(env.skyColor);
     u.uHorizon.value.copy(env.horizonColor);
     const k = 0.5 + 0.5 * env.daylight;
