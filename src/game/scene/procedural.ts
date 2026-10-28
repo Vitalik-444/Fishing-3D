@@ -147,18 +147,26 @@ export function makeBladeCluster(o: BladeOptions): THREE.BufferGeometry {
     const w = o.width * (0.8 + rng() * 0.4);
     const leanDist = (0.4 + rng() * 0.6) * o.lean * h;
     const la = rng() * Math.PI * 2;
+    const lx = Math.cos(la), lz = Math.sin(la);
     const pts: [number, number, number][] = [
       [-w / 2, 0, 0],
       [w / 2, 0, 0],
-      [Math.cos(la) * leanDist, h, Math.sin(la) * leanDist],
+      [-w * 0.32 + lx * leanDist * 0.25, h * 0.55, lz * leanDist * 0.25],
+      [w * 0.32 + lx * leanDist * 0.25, h * 0.55, lz * leanDist * 0.25],
+      [lx * leanDist, h, lz * leanDist],
     ];
     const world = pts.map(([x, y, z]) => [x * ca + z * sa + ox, y, -x * sa + z * ca + oz] as const);
-    const colors = [cb, cb, ct];
-    for (const order of [[0, 1, 2], [0, 2, 1]]) {
-      for (const k of order) {
-        pos.push(world[k][0], world[k][1], world[k][2]);
-        col.push(colors[k].r, colors[k].g, colors[k].b);
-        nor.push(0, 1, 0);
+    const cm = cb.clone().lerp(ct, 0.5);
+    const colors = [cb, cb, cm, cm, ct];
+    const tris = [[0, 1, 3], [0, 3, 2], [2, 3, 4]];
+    for (const tri of tris) {
+      for (const order of [[0, 1, 2], [0, 2, 1]]) {
+        for (const k of order) {
+          const i = tri[k];
+          pos.push(world[i][0], world[i][1], world[i][2]);
+          col.push(colors[i].r, colors[i].g, colors[i].b);
+          nor.push(0, 1, 0);
+        }
       }
     }
   }

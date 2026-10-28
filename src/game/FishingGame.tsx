@@ -11,6 +11,8 @@ import { Water } from './scene/Water';
 import { Vegetation } from './scene/Vegetation';
 import { EffectsLayer } from './scene/EffectsLayer';
 import { Rain } from './scene/Rain';
+import { SkyEnvironment } from './scene/SkyEnvironment';
+import { Clouds } from './scene/Clouds';
 import { FirstPersonController } from './player/FirstPersonController';
 import { FishingRod } from './player/FishingRod';
 import { Bobber } from './player/Bobber';
@@ -46,6 +48,8 @@ export default function FishingGame() {
       }}
     >
       <Lighting shadows={q.shadows} shadowMapSize={q.shadowMapSize} />
+      <SkyEnvironment />
+      <Clouds />
       <Terrain receiveShadow={q.shadows} />
       <Water />
       <Vegetation quality={q} />

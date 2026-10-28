@@ -104,7 +104,7 @@ function applyLook(): void {
   env.hemiGround.copy(C.groundDay).lerp(C.groundDusk, lowSun * 0.7);
 
   env.sunIntensity = lerp(0.9, 2.8, clamp(high * 1.4, 0, 1)) * (1 - 0.6 * grey);
-  env.hemiIntensity = lerp(0.35, 0.75, clamp(high * 1.4, 0, 1)) * (1 - 0.15 * grey);
+  env.hemiIntensity = lerp(0.28, 0.6, clamp(high * 1.4, 0, 1)) * (1 - 0.15 * grey);
   env.exposure = lerp(0.8, 0.98, clamp(high * 1.5, 0, 1)) * (1 - 0.05 * grey);
   env.fogFar = lerp(240, 110, clamp(env.rain * 0.85 + env.cloud * 0.2, 0, 1));
 }

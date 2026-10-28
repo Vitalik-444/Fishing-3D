@@ -46,6 +46,8 @@ void main() {
   float fine = 1.0 - smoothstep(18.0, 70.0, dist);
   vec2 rp = p * vec2(7.0, 6.0) + vec2(uTime * 2.0, -uTime * 1.7);
   slope += vec2(cos(rp.x) * sin(rp.y) * 7.0, sin(rp.x) * cos(rp.y) * 6.0) * 0.010 * fine;
+  vec2 rp2 = p * vec2(2.7, 3.3) + vec2(-uTime * 1.1, uTime * 0.85);
+  slope += vec2(sin(rp2.x * 1.3 + rp2.y), cos(rp2.y * 1.1 - rp2.x)) * 0.022 * fine;
   vec3 n = normalize(vec3(slope.x, 1.0, slope.y));
 
   vec3 V = normalize(cameraPosition - vWorld);
@@ -56,10 +58,15 @@ void main() {
   vec3 body = mix(uShallow, uDeep, smoothstep(0.1, 3.2, dep));
 
   vec3 skyCol = mix(uHorizon, uSky, clamp(R.y * 1.6, 0.0, 1.0));
+  vec2 cuv = R.xz / (R.y + 0.25) * 0.9 + vec2(uTime * 0.01, 0.0);
+  float cl = smoothstep(0.55, 1.0, 0.5 + 0.25 * sin(cuv.x * 3.1 + sin(cuv.y * 2.3) * 1.7) + 0.25 * sin(cuv.y * 4.3 - cuv.x * 1.9));
+  skyCol = mix(skyCol, vec3(1.0), cl * 0.32 * clamp(R.y * 3.0, 0.0, 1.0));
   vec3 col = mix(body, skyCol, clamp(fres * 0.85 + 0.07, 0.0, 1.0));
 
   float glint = pow(max(dot(R, uSunDir), 0.0), 380.0) * 2.6;
   float glow = pow(max(dot(R, uSunDir), 0.0), 9.0) * 0.18;
+  float scatter = pow(max(dot(-V, uSunDir), 0.0), 3.0) * smoothstep(0.2, 2.0, dep) * 0.08;
+  col += uShallow * scatter;
   col += vec3(1.0, 0.88, 0.68) * (glint + glow);
 
   float edge = 1.0 - smoothstep(0.02, 0.3, dep);
