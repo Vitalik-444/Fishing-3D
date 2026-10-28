@@ -1,16 +1,14 @@
 import { smoothstep } from './math';
 import { fbm } from './noise';
 
-/** Everything about the shape of the world lives here so rendering, physics and gameplay agree. */
 export const WATER_LEVEL = 0;
 export const TERRAIN_SIZE = 360;
-export const DEPTH_RANGE = 4.7; // depth texture encodes -h in [-0.5, 4.2]
+export const DEPTH_RANGE = 4.7;
 export const LAKE = { cx: 0, cz: -62, rx: 88, rz: 60 };
 export const EYE_HEIGHT = 1.65;
-export const WALK_MIN_HEIGHT = 0.3; // can't walk into water
+export const WALK_MIN_HEIGHT = 0.3;
 export const WALK_BOUNDS = { x: 60, zMax: 34 };
 
-/** Ground height (metres) at world x/z. Negative = lake bed. */
 export function terrainHeight(x: number, z: number): number {
   const dx = (x - LAKE.cx) / LAKE.rx;
   const dz = (z - LAKE.cz) / LAKE.rz;
@@ -27,7 +25,7 @@ export function terrainHeight(x: number, z: number): number {
   const ridge = fbm(x * 0.011 + 40, z * 0.011 - 9, 4);
   let hills = smoothstep(0.3, 1.5, k) * ridge * 54;
   const edge = Math.max(Math.abs(x), Math.abs(z));
-  hills *= 1 - smoothstep(125, 178, edge); // fade hills out before the map edge (fog hides the rest)
+  hills *= 1 - smoothstep(125, 178, edge);
   return lowland + hills + detail * smoothstep(0, 0.12, k);
 }
 
@@ -37,5 +35,4 @@ function findSpawn() {
   while (z < 60 && terrainHeight(x, z) < 0.75) z += 0.5;
   return { x, z: z + 1 };
 }
-/** Where the player starts: on dry land a few metres from the waterline. */
 export const SPAWN = findSpawn();

@@ -1,13 +1,9 @@
 import { useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { cancelCharge } from '../game/fishing/fishingEngine';
+import { cancelCharge, cancelHeldInputs } from '../game/fishing/fishingEngine';
 import { getLockTarget, releaseLock } from '../services/pointerLock';
 import { input } from '../game/player/input';
 
-/**
- * Single source of truth for "is the mouse captured?". Locked -> playing. Unlocked while playing
- * (Esc, P, alt-tab) -> paused, so gameplay timers stop and the cursor comes back for the menus.
- */
 export function PointerLockManager() {
   useEffect(() => {
     const onChange = () => {
@@ -18,6 +14,7 @@ export function PointerLockManager() {
         store.setPhase('playing');
       } else if (store.phase === 'playing') {
         cancelCharge();
+        cancelHeldInputs();
         input.keys.clear();
         store.setPhase('paused');
       }

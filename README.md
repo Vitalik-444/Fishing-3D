@@ -1,44 +1,51 @@
-# Lakeside Angler — Milestone 1
+# Lakeside Angler
 
-3D first-person fishing simulator for the browser (React + TypeScript + Vite + Three.js / React Three Fiber).
+3D first-person fishing simulator for the browser (React, TypeScript, Vite, Three.js, React Three Fiber, Zustand).
 
 ```
 npm install
-npm run dev      # http://localhost:5173
-npm run build    # type-check + production build
+npm run dev
+npm run build
+npm test
+npm run simulate
 ```
 
 ## Controls
 | Input | Action |
 |---|---|
-| Mouse | Look (click **Start fishing** to capture the mouse) |
-| W A S D, Shift | Walk along the shore (only with the line in) |
-| Hold **Space** or **Left click** | Charge cast power; release to cast |
-| **R** | Reel the bobber back in |
-| **Esc** or **P** | Release the mouse and pause |
+| Mouse | Look |
+| W A S D, Shift | Walk along the shore (line in) |
+| Space / Left click | Hold to charge and release to cast. Press to set the hook on a bite. Hold to reel during a fight |
+| F / Right click | Hold to give line and ease tension |
+| R | Reel the line in while waiting |
+| E / Q | Keep or release a caught fish |
+| Esc / P | Release the mouse, open pause menu (shop, equipment, collection, statistics, settings) |
 
-## What Milestone 1 contains
-- Lake scene: baked-depth water shader (animated waves, fresnel sky reflection, sun glint, shallows tint, shore foam), displaced-heightfield shoreline with sand/grass/rock colouring, hills, sky, fog, sun with soft shadows that follow the player.
-- Instanced vegetation: pines, broadleaf trees, bushes, rocks, reeds and grass (reeds/grass sway in the wind).
-- First-person camera with pointer lock, smoothing, pitch limits, shore walking that cannot enter the water.
-- Rod that tilts back while charging, whips on release and flexes with a spring; bobber that flies on a ballistic arc, splashes, floats on the same wave field the shader draws, and can be reeled in. Casting on dry land is detected and handled.
-- Menu, pause menu, settings (mouse sensitivity, graphics quality; persisted in localStorage), HUD with level / money / rod / bait / state / cast-power meter.
+## Implemented
+- Milestone 1: lake scene, water shader, vegetation, first-person camera, rod, casting, bobber.
+- Milestone 2: bite waiting with nibbles, bite window, hook timing roll, fight simulation (tension, drag, stamina, pull and rest phases, line break, slack escape, line run-out), landing.
+- Milestone 3: 8 data-driven species, weighted selection by bait, hook, depth, time of day and weather, equipment and bait shop with level unlocks, equipment screen, collection and catch log, statistics, progression, localStorage save with sanitising loader.
+- Milestone 4: procedural WebAudio sound and ambience, day cycle with sun and sky changes, clear/overcast/rain weather affecting bite rates, rain particles, touch fallback controls, quality presets.
 
 ## Layout
 ```
 src/
-  app/            App, InputController, PointerLockManager
-  components/     hud/, menus/
+  app/            App, InputController, PointerLockManager, AudioController
+  components/     hud/, menus/, screens/, ui/
   game/
-    fishing/      fishingTypes (state machine), fishingConfig, casting (pure math), fishingEngine (actions), fishingRuntime
-    scene/        Terrain, Water, Lighting, Vegetation, procedural, EffectsLayer
-    player/       FirstPersonController, FishingRod, Bobber, FishingLine, playerState
-    world/        terrain height field, waves, noise, rng (shared by rendering and gameplay)
+    data/         fishSpecies, equipment, baits, locations
+    fishing/      engine, biteSystem, fishFight, fishGeneration, config, runtime, gear
+    scene/        Terrain, Water, Lighting, Vegetation, Rain, EffectsLayer
+    player/       FirstPersonController, FishingRod, FishingLine, Bobber
+    world/        terrain, waves, noise, environment
   store/          gameStore, settingsStore
-  services/       pointerLock
+  services/       persistence, audio, pointerLock
+tests/            vitest unit tests
+scripts/          fight balance simulation
 ```
-High-frequency values (charge, bobber, rod tip) live in plain mutable objects, not React state.
-`fishingTypes.ts` already defines every fishing state and the legal transitions for Milestone 2.
 
-## Not in this milestone
-Bites, hooking, fighting, fish, shop, inventory, catch log, save-game, audio, time of day / weather, touch controls.
+## Known limitations
+- Fish are stylised 2D illustrations (`FishIllustration.tsx`); swap in 3D models there later.
+- All audio is synthesised, no sample files.
+- One location (Quiet Lake); `locations.ts` is ready for more.
+- Touch controls are basic (drag to look, on-screen action buttons, no walking).

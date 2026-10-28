@@ -12,11 +12,10 @@ const SEGMENTS = 6;
 const SEG_LEN = 0.4;
 const R_BASE = 0.0135;
 const R_TIP = 0.0035;
-const REST_TILT = 0.42; // rod elevation above horizontal at rest (~24 deg)
+const REST_TILT = 0.42;
 
 const radiusAt = (i: number) => lerp(R_BASE, R_TIP, i / SEGMENTS);
 
-/** One blank section. Each section's group is rotated about its base to bend the rod. */
 function Segment({
   index, refs, tipRef, material,
 }: {
@@ -41,10 +40,6 @@ function Segment({
   );
 }
 
-/**
- * First-person fishing rod. It follows the camera, tilts back while charging, whips forward on
- * release and flexes with a spring (bend drives the same joints a fish fight will use later).
- */
 export function FishingRod() {
   const camera = useThree((s) => s.camera);
   const root = useRef<THREE.Group>(null);
@@ -74,27 +69,41 @@ export function FishingRod() {
     const dt = gs.phase === 'playing' ? Math.min(delta, 0.05) : 0;
     const a = anim.current;
 
-    // Pose targets from the fishing state.
     let targetTilt = REST_TILT;
     let tiltRate = 8;
     let bendTarget = 0;
+    const t0 = state.clock.elapsedTime;
     if (gs.fishingState === 'preparing') {
-      targetTilt = REST_TILT + 0.66 * runtime.charge; // rod drawn back over the shoulder
+      targetTilt = REST_TILT + 0.66 * runtime.charge;
       tiltRate = 10;
       bendTarget = 0.045 * runtime.charge;
     } else if (runtime.whipTime >= 0) {
       if (runtime.whipTime < CAST.releaseTime) {
-        targetTilt = 0.22; // fast forward sweep
+        targetTilt = 0.22;
         tiltRate = 26;
         bendTarget = -0.1;
       } else {
         tiltRate = 6;
       }
+    } else if (gs.fishingState === 'waiting') {
+      bendTarget = runtime.nibble * 0.035;
+    } else if (gs.fishingState === 'bite') {
+      targetTilt = REST_TILT + 0.04;
+      bendTarget = 0.03 + Math.abs(Math.sin(t0 * 16)) * 0.03;
+    } else if (gs.fishingState === 'hooking') {
+      targetTilt = REST_TILT + 0.8;
+      tiltRate = 22;
+      bendTarget = 0.12;
+    } else if (gs.fishingState === 'fighting') {
+      const ratio = Math.min(1.15, runtime.tensionRatio);
+      const pull = runtime.fightPhase === 'pull';
+      targetTilt = REST_TILT + 0.5 - 0.12 * ratio + (pull ? Math.sin(t0 * 9) * 0.035 : 0);
+      tiltRate = 9;
+      bendTarget = 0.06 + 0.32 * ratio + (pull ? Math.sin(t0 * 18) * 0.025 : 0);
     }
 
     if (dt > 0) {
       a.tilt += (targetTilt - a.tilt) * (1 - Math.exp(-tiltRate * dt));
-      // Underdamped spring -> the rod wobbles for a moment after the whip.
       a.bendVel += ((bendTarget - a.bend) * 250 - a.bendVel * 14) * dt;
       a.bend += a.bendVel * dt;
     }
@@ -111,14 +120,12 @@ export function FishingRod() {
       if (g) g.rotation.x = a.bend * (0.4 + (i / (SEGMENTS - 1)) * 0.9);
     }
 
-    // Refresh the tip position now so the line and bobber attach to this frame's pose, not last frame's.
     tipRef.current?.getWorldPosition(rig.tip);
   });
 
   return (
     <group ref={root}>
       <group ref={pivot}>
-        {/* handle, reel and blank. Rod points along local +Y; local -Z is "down" for the reel. */}
         <mesh position={[0, -0.12, 0]} material={mats.cork}>
           <cylinderGeometry args={[0.025, 0.027, 0.3, 12]} />
         </mesh>

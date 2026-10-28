@@ -3,7 +3,6 @@ import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferG
 import { hash2, mulberry32 } from '../world/rng';
 import { lerp } from '../world/math';
 
-/** Deterministic per-position noise in [-1, 1] (same input -> same output, so shared vertices never crack). */
 function posNoise(x: number, y: number, z: number, seed: number): number {
   return hash2(Math.round(x * 50) + seed * 17 + Math.round(y * 50) * 131, Math.round(z * 50) + Math.round(y * 50) * 7) * 2 - 1;
 }
@@ -46,7 +45,6 @@ function ensureUV(g: THREE.BufferGeometry): void {
   if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
 }
 
-/** Smooth lumpy sphere used for foliage, bushes and rocks. */
 export function smoothBlob(radius: number, detail: number, amount: number, seed: number): THREE.BufferGeometry {
   let g: THREE.BufferGeometry = new THREE.IcosahedronGeometry(radius, detail);
   g.deleteAttribute('normal');
@@ -58,7 +56,6 @@ export function smoothBlob(radius: number, detail: number, amount: number, seed:
   return g;
 }
 
-/** Merge parts that each have position/normal/uv/color into one geometry. */
 export function mergeParts(parts: THREE.BufferGeometry[]): THREE.BufferGeometry {
   const list = parts.map((p) => {
     ensureUV(p);
@@ -134,7 +131,6 @@ interface BladeOptions {
   spread: number; lean: number; base: string; tip: string; seed: number;
 }
 
-/** A tuft of grass/reed blades. Normals point up so the tuft shades like the ground it grows from. */
 export function makeBladeCluster(o: BladeOptions): THREE.BufferGeometry {
   const rng = mulberry32(o.seed);
   const pos: number[] = [];
@@ -158,7 +154,6 @@ export function makeBladeCluster(o: BladeOptions): THREE.BufferGeometry {
     ];
     const world = pts.map(([x, y, z]) => [x * ca + z * sa + ox, y, -x * sa + z * ca + oz] as const);
     const colors = [cb, cb, ct];
-    // Front and back face (reverse winding) so blades are visible from both sides with correct normals.
     for (const order of [[0, 1, 2], [0, 2, 1]]) {
       for (const k of order) {
         pos.push(world[k][0], world[k][1], world[k][2]);
@@ -174,7 +169,6 @@ export function makeBladeCluster(o: BladeOptions): THREE.BufferGeometry {
   return g;
 }
 
-/** Shared wind clock for every swaying material. */
 export const windUniform = { value: 0 };
 
 export function makeSwayMaterial(amplitude: number): THREE.MeshStandardMaterial {

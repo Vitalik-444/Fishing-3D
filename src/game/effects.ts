@@ -1,8 +1,7 @@
-/** Pools for water ripples and splash droplets. State only; EffectsLayer renders it. */
-export const fx = { now: 0 }; // game-time seconds (frozen while paused)
+export const fx = { now: 0 };
 
 export interface RippleSlot { active: boolean; x: number; z: number; t0: number; dur: number; maxR: number }
-export const ripplePool: RippleSlot[] = Array.from({ length: 10 }, () => ({
+export const ripplePool: RippleSlot[] = Array.from({ length: 20 }, () => ({
   active: false, x: 0, z: 0, t0: 0, dur: 1, maxR: 1,
 }));
 let rippleCursor = 0;

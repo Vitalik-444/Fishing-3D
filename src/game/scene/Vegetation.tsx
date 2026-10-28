@@ -15,7 +15,6 @@ interface Range { x0: number; x1: number; z0: number; z1: number }
 
 const nearSpawn = (x: number, z: number, r: number) => Math.hypot(x - SPAWN.x, z - SPAWN.z) < r;
 
-/** Deterministic scatter: samples random points and keeps the ones `accept` gives a scale for. */
 function scatter(count: number, seed: number, range: Range, accept: Accept): Placement[] {
   const rng = mulberry32(seed);
   const out: Placement[] = [];
@@ -103,8 +102,8 @@ export function Vegetation({ quality }: { quality: QualityPreset }) {
     const forestMask = (x: number, z: number) => fbm(x * 0.03 + 5, z * 0.03, 3);
     const treeAccept: Accept = (x, z, h, rng) => {
       if (h < 1.1 || nearSpawn(x, z, 9)) return null;
-      if (Math.abs(x) < 26 && z < SPAWN.z + 4) return null; // keep the view of the lake open
-      if (forestMask(x, z) < 0.4 && rng() < 0.75) return null; // cluster into groves
+      if (Math.abs(x) < 26 && z < SPAWN.z + 4) return null;
+      if (forestMask(x, z) < 0.4 && rng() < 0.75) return null;
       return 0.8 + rng() * 0.9;
     };
     const trees = scatter(quality.trees, 101, { x0: -165, x1: 165, z0: -150, z1: 70 }, treeAccept);

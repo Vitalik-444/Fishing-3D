@@ -1,7 +1,3 @@
-/**
- * Wave field shared by the water shader (GLSL) and gameplay code (bobber, ripples),
- * generated from the same table so the bobber really rides the visible waves.
- */
 export interface Wave { dx: number; dz: number; k: number; w: number; a: number }
 
 const mk = (angle: number, k: number, w: number, a: number): Wave => ({

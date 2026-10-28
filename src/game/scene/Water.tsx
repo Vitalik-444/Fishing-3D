@@ -5,6 +5,7 @@ import { WAVE_GLSL } from '../world/waves';
 import { DEPTH_RANGE, TERRAIN_SIZE } from '../world/terrain';
 import { createDepthTexture } from '../world/depthTexture';
 import { SUN_DIR } from '../world/constants';
+import { env } from '../world/environment';
 
 const vertexShader = /* glsl */ `
 #include <fog_pars_vertex>
@@ -12,7 +13,7 @@ uniform float uTime;
 varying vec3 vWorld;
 ${WAVE_GLSL}
 void main() {
-  vec3 pos = position;              // plane is pre-rotated: position.xz == world xz
+  vec3 pos = position;
   pos.y += waveH(pos.xz, uTime);
   vWorld = pos;
   vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
@@ -37,7 +38,6 @@ void main() {
   vec2 p = vWorld.xz;
   float dist = length(cameraPosition - vWorld);
 
-  // Surface normal from the same wave field the bobber uses, plus fine ripples that fade with distance.
   float e = 0.15;
   float h0 = waveH(p, uTime);
   float hx = waveH(p + vec2(e, 0.0), uTime);
@@ -52,7 +52,6 @@ void main() {
   float fres = pow(1.0 - max(dot(n, V), 0.0), 3.0);
   vec3 R = reflect(-V, n);
 
-  // Baked lake depth: shallows are lighter and see-through, deep water is dark and reflective.
   float dep = texture2D(uDepth, p / uSize + 0.5).r * ${DEPTH_RANGE.toFixed(2)} - 0.5;
   vec3 body = mix(uShallow, uDeep, smoothstep(0.1, 3.2, dep));
 
@@ -63,7 +62,6 @@ void main() {
   float glow = pow(max(dot(R, uSunDir), 0.0), 9.0) * 0.18;
   col += vec3(1.0, 0.88, 0.68) * (glint + glow);
 
-  // Waterline foam, drifting slightly so the shore is never a hard static edge.
   float edge = 1.0 - smoothstep(0.02, 0.3, dep);
   float foam = edge * (0.5 + 0.5 * sin(p.x * 3.1 + uTime) * sin(p.y * 2.7 - uTime * 0.8));
   col = mix(col, vec3(0.93, 0.95, 0.92), foam * 0.55);
@@ -77,6 +75,9 @@ void main() {
   #include <fog_fragment>
 }
 `;
+
+const SHALLOW = new THREE.Color('#5aa79b');
+const DEEP = new THREE.Color('#123f58');
 
 export function Water() {
   const mat = useRef<THREE.ShaderMaterial>(null);
@@ -107,7 +108,16 @@ export function Water() {
   useEffect(() => () => { geometry.dispose(); depth.dispose(); }, [geometry, depth]);
 
   useFrame((state) => {
-    if (mat.current) mat.current.uniforms.uTime.value = state.clock.elapsedTime;
+    const m = mat.current;
+    if (!m) return;
+    const u = m.uniforms;
+    u.uTime.value = state.clock.elapsedTime;
+    u.uSunDir.value.copy(env.sunDir);
+    u.uSky.value.copy(env.skyColor);
+    u.uHorizon.value.copy(env.horizonColor);
+    const k = 0.5 + 0.5 * env.daylight;
+    u.uShallow.value.copy(SHALLOW).multiplyScalar(k);
+    u.uDeep.value.copy(DEEP).multiplyScalar(k);
   });
 
   return (

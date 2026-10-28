@@ -1,4 +1,3 @@
-/** Small seeded PRNG so the scenery is identical on every load. */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -10,7 +9,6 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-/** Deterministic lattice hash -> [0, 1]. */
 export function hash2(ix: number, iz: number): number {
   let h = (Math.imul(ix | 0, 374761393) + Math.imul(iz | 0, 668265263)) | 0;
   h = Math.imul(h ^ (h >>> 13), 1274126177);

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { dropletPool, fx, ripplePool } from '../effects';
-import { WATER_LEVEL } from '../world/terrain';
+import { dropletPool, fx, ripplePool, spawnRipple } from '../effects';
+import { WATER_LEVEL, terrainHeight } from '../world/terrain';
+import { env } from '../world/environment';
+import { player } from '../player/playerState';
 import { waveHeight } from '../world/waves';
 import { useGameStore } from '../../store/gameStore';
 
-/** Expanding rings where the bobber lands, bobs and is dragged, plus splash droplets. */
 export function EffectsLayer() {
   const rings = useRef<(THREE.Mesh | null)[]>([]);
   const drops = useRef<THREE.InstancedMesh>(null);
@@ -20,6 +21,7 @@ export function EffectsLayer() {
     () => ripplePool.map(() => new THREE.MeshBasicMaterial({ color: '#eaf5f4', transparent: true, opacity: 0, depthWrite: false })),
     [],
   );
+  const rainTimer = useRef(0);
   const dropGeo = useMemo(() => new THREE.IcosahedronGeometry(0.035, 0), []);
   const dropMat = useMemo(() => new THREE.MeshBasicMaterial({ color: '#f4fbfb', transparent: true, opacity: 0.85 }), []);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -39,6 +41,18 @@ export function EffectsLayer() {
     const dt = active ? Math.min(delta, 0.05) : 0;
     fx.now += dt;
     const t = state.clock.elapsedTime;
+
+    if (dt > 0 && env.rain > 0.25) {
+      rainTimer.current -= dt;
+      if (rainTimer.current <= 0) {
+        rainTimer.current = 0.22 - env.rain * 0.14;
+        const a = player.yaw + (Math.random() - 0.5) * 1.6;
+        const d = 6 + Math.random() * 34;
+        const x = player.position.x - Math.sin(a) * d;
+        const z = player.position.z - Math.cos(a) * d;
+        if (terrainHeight(x, z) < -0.1) spawnRipple(x, z, 0.35, 0.8);
+      }
+    }
 
     for (let i = 0; i < ripplePool.length; i++) {
       const slot = ripplePool[i];

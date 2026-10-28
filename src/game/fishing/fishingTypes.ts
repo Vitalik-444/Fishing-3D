@@ -10,9 +10,13 @@ export type FishingState =
   | 'escaped'
   | 'lineBroken';
 
-export type BobberMode = 'hanging' | 'flying' | 'floating' | 'grounded' | 'retrieving';
+export type BobberMode = 'hanging' | 'flying' | 'floating' | 'grounded' | 'retrieving' | 'fighting';
 
-/** Valid transitions. Milestone 2 plugs bite/hooking/fighting into the same table. */
+export type WaitPhase = 'none' | 'waiting' | 'nibbling';
+
+export type Weather = 'clear' | 'cloudy' | 'rain';
+export type DayPeriod = 'dawn' | 'day' | 'dusk';
+
 export const TRANSITIONS: Record<FishingState, readonly FishingState[]> = {
   idle: ['preparing'],
   preparing: ['idle', 'casting'],
@@ -29,3 +33,20 @@ export const TRANSITIONS: Record<FishingState, readonly FishingState[]> = {
 export function canTransition(from: FishingState, to: FishingState): boolean {
   return TRANSITIONS[from].includes(to);
 }
+
+export interface FishInstance {
+  id: string;
+  speciesId: string;
+  weight: number;
+  length: number;
+  value: number;
+  xp: number;
+  trophy: boolean;
+}
+
+export interface CatchRecord extends FishInstance {
+  time: number;
+  kept: boolean;
+}
+
+export type Rng = () => number;

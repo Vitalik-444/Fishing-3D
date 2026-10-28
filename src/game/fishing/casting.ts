@@ -3,7 +3,6 @@ import { clamp } from '../world/math';
 
 export interface Vec3Like { x: number; y: number; z: number }
 
-/** Initial bobber velocity from where the player looks and how long they charged. */
 export function launchVelocity(
   yaw: number,
   pitch: number,
@@ -24,7 +23,6 @@ export function launchVelocity(
   return out;
 }
 
-/** One semi-implicit Euler step of the flying bobber. */
 export function stepProjectile(pos: Vec3Like, vel: Vec3Like, dt: number): void {
   vel.y -= CAST.gravity * dt;
   const d = Math.max(0, 1 - CAST.drag * dt);

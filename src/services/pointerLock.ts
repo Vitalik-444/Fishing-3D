@@ -1,4 +1,5 @@
 import { useGameStore } from '../store/gameStore';
+import { unlockAudio } from './audio';
 
 let target: HTMLElement | null = null;
 
@@ -9,10 +10,20 @@ export function getLockTarget(): HTMLElement | null {
   return target;
 }
 
-/** Ask the browser to capture the mouse. Must be called from a user gesture (a click). */
+export function isTouchDevice(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  return window.matchMedia('(pointer: coarse)').matches;
+}
+
 export function requestLock(): void {
+  unlockAudio();
   const el = target;
   const store = useGameStore.getState();
+  if (isTouchDevice()) {
+    store.setLockMessage(null);
+    store.setPhase('playing');
+    return;
+  }
   if (!el || typeof el.requestPointerLock !== 'function') {
     store.setLockMessage('This browser cannot capture the mouse. Open the game in a desktop browser.');
     return;
@@ -34,4 +45,5 @@ export function requestLock(): void {
 
 export function releaseLock(): void {
   if (document.pointerLockElement) document.exitPointerLock();
+  else if (useGameStore.getState().phase === 'playing' && isTouchDevice()) useGameStore.getState().setPhase('paused');
 }

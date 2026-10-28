@@ -2,9 +2,8 @@ import * as THREE from 'three';
 import { DEPTH_RANGE, TERRAIN_SIZE, terrainHeight } from './terrain';
 import { clamp } from './math';
 
-/** Bakes lake depth into a small texture so the water shader can tint shallows and draw shore foam. */
 export function createDepthTexture(res = 384): THREE.DataTexture {
-  const data = new Uint8Array(res * res); // res is a multiple of 4 -> rows are 4-byte aligned
+  const data = new Uint8Array(res * res);
   for (let j = 0; j < res; j++) {
     const z = (j / (res - 1) - 0.5) * TERRAIN_SIZE;
     for (let i = 0; i < res; i++) {

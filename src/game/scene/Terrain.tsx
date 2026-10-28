@@ -65,7 +65,6 @@ function buildTerrain(): THREE.BufferGeometry {
   return geo;
 }
 
-/** Small tileable noise texture that breaks up the flat vertex colours at close range. */
 function buildDetailTexture(): THREE.DataTexture {
   const size = 128;
   const period = 16;
